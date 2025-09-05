@@ -6,8 +6,8 @@ import (
 	"net/url"
 
 	"claude-code-companion/internal/config"
-	"claude-code-companion/internal/security"
 	"claude-code-companion/internal/i18n"
+	"claude-code-companion/internal/security"
 
 	"github.com/gin-gonic/gin"
 )
@@ -54,18 +54,19 @@ func (s *AdminServer) handleUpdateEndpoints(c *gin.Context) {
 // handleCreateEndpoint 创建新端点
 func (s *AdminServer) handleCreateEndpoint(c *gin.Context) {
 	var request struct {
-		Name              string               `json:"name" binding:"required"`
-		URL               string               `json:"url" binding:"required"`
-		EndpointType      string               `json:"endpoint_type"` // "anthropic" | "openai"
-		PathPrefix        string               `json:"path_prefix"`   // OpenAI 端点的路径前缀
-		AuthType          string               `json:"auth_type" binding:"required"`
-		AuthValue         string               `json:"auth_value"`    // OAuth时不需要
-		Enabled           bool                 `json:"enabled"`
-		Tags              []string             `json:"tags"`
-		Proxy             *config.ProxyConfig  `json:"proxy,omitempty"` // 新增：代理配置
-		OAuthConfig       *config.OAuthConfig  `json:"oauth_config,omitempty"` // 新增：OAuth配置
-		HeaderOverrides     map[string]string    `json:"header_overrides,omitempty"`   // 新增：HTTP Header覆盖配置
-		ParameterOverrides  map[string]string    `json:"parameter_overrides,omitempty"` // 新增：Request Parameter覆盖配置
+		Name               string              `json:"name" binding:"required"`
+		URL                string              `json:"url" binding:"required"`
+		EndpointType       string              `json:"endpoint_type"` // "anthropic" | "openai"
+		PathPrefix         string              `json:"path_prefix"`   // OpenAI 端点的路径前缀
+		AuthType           string              `json:"auth_type" binding:"required"`
+		AuthValue          string              `json:"auth_value"` // OAuth时不需要
+		Enabled            bool                `json:"enabled"`
+		Tags               []string            `json:"tags"`
+		ModelAlias         string              `json:"model_alias"`
+		Proxy              *config.ProxyConfig `json:"proxy,omitempty"`               // 新增：代理配置
+		OAuthConfig        *config.OAuthConfig `json:"oauth_config,omitempty"`        // 新增：OAuth配置
+		HeaderOverrides    map[string]string   `json:"header_overrides,omitempty"`    // 新增：HTTP Header覆盖配置
+		ParameterOverrides map[string]string   `json:"parameter_overrides,omitempty"` // 新增：Request Parameter覆盖配置
 	}
 
 	if err := c.ShouldBindJSON(&request); err != nil {
@@ -89,6 +90,13 @@ func (s *AdminServer) handleCreateEndpoint(c *gin.Context) {
 		return
 	}
 
+	if request.ModelAlias != "" {
+		if err := security.ValidateGenericText(request.ModelAlias, 100, i18n.TCtx(c, "model_alias", "模型简称")); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+	}
+
 	if request.AuthValue != "" {
 		if err := security.ValidateAuthToken(request.AuthValue); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": i18n.TCtx(c, "auth_token_validation_failed", "认证令牌验证失败: ") + err.Error()})
@@ -108,7 +116,7 @@ func (s *AdminServer) handleCreateEndpoint(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "auth_type must be 'api_key', 'auth_token', or 'oauth'"})
 		return
 	}
-	
+
 	// 验证 OAuth 或传统认证配置
 	if request.AuthType == "oauth" {
 		if request.OAuthConfig == nil {
@@ -150,10 +158,24 @@ func (s *AdminServer) handleCreateEndpoint(c *gin.Context) {
 	}
 
 	// 创建新端点配置
+	if request.ModelAlias != "" {
+		// 自动添加同名标签
+		exists := false
+		for _, t := range request.Tags {
+			if t == request.ModelAlias {
+				exists = true
+				break
+			}
+		}
+		if !exists {
+			request.Tags = append(request.Tags, request.ModelAlias)
+		}
+	}
+
 	newEndpoint := createEndpointConfigFromRequest(
 		request.Name, request.URL, request.EndpointType, request.PathPrefix,
-		request.AuthType, request.AuthValue, 
-		request.Enabled, maxPriority+1, request.Tags, request.Proxy, request.OAuthConfig, request.HeaderOverrides, request.ParameterOverrides)
+		request.AuthType, request.AuthValue,
+		request.Enabled, maxPriority+1, request.Tags, request.Proxy, request.OAuthConfig, request.HeaderOverrides, request.ParameterOverrides, request.ModelAlias)
 	currentEndpoints = append(currentEndpoints, newEndpoint)
 
 	// 使用热更新机制
@@ -180,18 +202,19 @@ func (s *AdminServer) handleUpdateEndpoint(c *gin.Context) {
 	}
 
 	var request struct {
-		Name              string               `json:"name"`
-		URL               string               `json:"url"`
-		EndpointType      string               `json:"endpoint_type"`
-		PathPrefix        string               `json:"path_prefix"` // OpenAI 端点的路径前缀
-		AuthType          string               `json:"auth_type"`
-		AuthValue         string               `json:"auth_value"`
-		Enabled           bool                 `json:"enabled"`
-		Tags              []string             `json:"tags"`
-		Proxy             *config.ProxyConfig  `json:"proxy,omitempty"` // 新增：代理配置
-		OAuthConfig       *config.OAuthConfig  `json:"oauth_config,omitempty"` // 新增：OAuth配置
-		HeaderOverrides     map[string]string    `json:"header_overrides,omitempty"`   // 新增：HTTP Header覆盖配置
-		ParameterOverrides  map[string]string    `json:"parameter_overrides,omitempty"` // 新增：Request Parameter覆盖配置
+		Name               string              `json:"name"`
+		URL                string              `json:"url"`
+		EndpointType       string              `json:"endpoint_type"`
+		PathPrefix         string              `json:"path_prefix"` // OpenAI 端点的路径前缀
+		AuthType           string              `json:"auth_type"`
+		AuthValue          string              `json:"auth_value"`
+		Enabled            bool                `json:"enabled"`
+		Tags               []string            `json:"tags"`
+		ModelAlias         string              `json:"model_alias"`
+		Proxy              *config.ProxyConfig `json:"proxy,omitempty"`               // 新增：代理配置
+		OAuthConfig        *config.OAuthConfig `json:"oauth_config,omitempty"`        // 新增：OAuth配置
+		HeaderOverrides    map[string]string   `json:"header_overrides,omitempty"`    // 新增：HTTP Header覆盖配置
+		ParameterOverrides map[string]string   `json:"parameter_overrides,omitempty"` // 新增：Request Parameter覆盖配置
 	}
 
 	if err := c.ShouldBindJSON(&request); err != nil {
@@ -217,6 +240,13 @@ func (s *AdminServer) handleUpdateEndpoint(c *gin.Context) {
 	if len(request.Tags) > 0 {
 		if err := security.ValidateTags(request.Tags); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": i18n.TCtx(c, "tags_validation_failed", "标签验证失败: ") + err.Error()})
+			return
+		}
+	}
+
+	if request.ModelAlias != "" {
+		if err := security.ValidateGenericText(request.ModelAlias, 100, i18n.TCtx(c, "model_alias", "模型简称")); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 	}
@@ -266,7 +296,7 @@ func (s *AdminServer) handleUpdateEndpoint(c *gin.Context) {
 					c.JSON(http.StatusBadRequest, gin.H{"error": "auth_type must be 'api_key', 'auth_token', or 'oauth'"})
 					return
 				}
-				
+
 				// 验证 OAuth 或传统认证配置
 				if request.AuthType == "oauth" {
 					if request.OAuthConfig == nil {
@@ -278,23 +308,23 @@ func (s *AdminServer) handleUpdateEndpoint(c *gin.Context) {
 						c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid oauth config: " + err.Error()})
 						return
 					}
-					
+
 					// 检查内存中是否已有更新的 OAuth token（防止覆盖已刷新的token）
 					if currentEndpoints[i].AuthType == "oauth" && currentEndpoints[i].OAuthConfig != nil {
 						currentExpiresAt := currentEndpoints[i].OAuthConfig.ExpiresAt
 						requestExpiresAt := request.OAuthConfig.ExpiresAt
-						
+
 						// 如果内存中的过期时间比 WebUI 发送的更大，说明后台已刷新token，拒绝更新
 						if currentExpiresAt > requestExpiresAt && requestExpiresAt > 0 {
 							c.JSON(http.StatusConflict, gin.H{
-								"error": "Cannot update OAuth config: token has been refreshed in background. Please reload the page to get the latest configuration.",
+								"error":              "Cannot update OAuth config: token has been refreshed in background. Please reload the page to get the latest configuration.",
 								"current_expires_at": currentExpiresAt,
 								"request_expires_at": requestExpiresAt,
 							})
 							return
 						}
 					}
-					
+
 					// 设置OAuth配置，清空auth_value
 					currentEndpoints[i].OAuthConfig = request.OAuthConfig
 					currentEndpoints[i].AuthValue = ""
@@ -308,20 +338,36 @@ func (s *AdminServer) handleUpdateEndpoint(c *gin.Context) {
 				currentEndpoints[i].AuthType = request.AuthType
 			}
 			currentEndpoints[i].Enabled = request.Enabled
-			
+
 			// 更新tags字段
 			currentEndpoints[i].Tags = request.Tags
-			
+
+			// 自动添加同名标签
+			if request.ModelAlias != "" {
+				exists := false
+				for _, t := range currentEndpoints[i].Tags {
+					if t == request.ModelAlias {
+						exists = true
+						break
+					}
+				}
+				if !exists {
+					currentEndpoints[i].Tags = append(currentEndpoints[i].Tags, request.ModelAlias)
+				}
+			}
+
+			// 更新模型简称
+			currentEndpoints[i].ModelAlias = request.ModelAlias
+
 			// 更新代理配置
 			currentEndpoints[i].Proxy = request.Proxy
-			
-			
+
 			// 更新HTTP Header覆盖配置
 			currentEndpoints[i].HeaderOverrides = request.HeaderOverrides
-			
+
 			// 更新Request Parameter覆盖配置
 			currentEndpoints[i].ParameterOverrides = request.ParameterOverrides
-			
+
 			found = true
 			break
 		}
