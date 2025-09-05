@@ -25,6 +25,9 @@ function showAddEndpointModal() {
     
     // Clear default model
     document.getElementById('endpoint-default-model').value = '';
+
+    // Clear model alias
+    document.getElementById('endpoint-model-alias').value = '';
     
     
     // Clear header override configuration
@@ -101,6 +104,9 @@ function showEditEndpointModal(endpointName) {
     
     // Load default model after loading model rewrite config
     loadDefaultModel(endpoint.model_rewrite);
+
+    // Load model alias
+    document.getElementById('endpoint-model-alias').value = endpoint.model_alias || '';
     
     
     // Load header override configuration
@@ -193,9 +199,15 @@ function saveEndpoint() {
         }
     }
 
+    // Model alias
+    const modelAlias = document.getElementById('endpoint-model-alias').value.trim();
+
     // Parse tags field
     const tagsInput = document.getElementById('endpoint-tags').value.trim();
     const tags = tagsInput ? tagsInput.split(',').map(tag => tag.trim()).filter(tag => tag) : [];
+    if (modelAlias && !tags.includes(modelAlias)) {
+        tags.push(modelAlias);
+    }
 
     const data = {
         name: document.getElementById('endpoint-name').value,
@@ -206,6 +218,7 @@ function saveEndpoint() {
         auth_value: authValue,
         enabled: document.getElementById('endpoint-enabled').checked,
         tags: tags,
+        model_alias: modelAlias,
         max_tokens_field_name: document.getElementById('max-tokens-field-name').value || '', // New: max tokens field name
         proxy: collectProxyData(), // New: collect proxy configuration
         header_overrides: collectHeaderOverrideData(), // New: collect header override configuration
