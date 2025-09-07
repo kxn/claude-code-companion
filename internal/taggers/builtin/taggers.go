@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"claude-code-companion/internal/interfaces"
@@ -416,6 +417,12 @@ func NewThinkingTagger(name, tag string, config map[string]interface{}) (interfa
 			minBudgetTokens = int(budgetFloat)
 		} else if budgetInt, ok := budgetInterface.(int); ok {
 			minBudgetTokens = budgetInt
+		} else if budgetStr, ok := budgetInterface.(string); ok {
+			if i, err := strconv.Atoi(budgetStr); err == nil {
+				minBudgetTokens = i
+			} else {
+				return nil, fmt.Errorf("thinking tagger 'min_budget_tokens' must be a number")
+			}
 		} else {
 			return nil, fmt.Errorf("thinking tagger 'min_budget_tokens' must be a number")
 		}
