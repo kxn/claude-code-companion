@@ -18,16 +18,16 @@ func NewResponseValidator() *ResponseValidator {
 }
 
 func (v *ResponseValidator) ValidateAnthropicResponse(body []byte, isStreaming bool) error {
-	return v.ValidateResponse(body, isStreaming, "anthropic")
+	return v.ValidateResponse(body, isStreaming, "anthropic", "")
 }
 
-func (v *ResponseValidator) ValidateResponse(body []byte, isStreaming bool, endpointType string) error {
-	return v.ValidateResponseWithPath(body, isStreaming, endpointType, "")
+func (v *ResponseValidator) ValidateResponse(body []byte, isStreaming bool, endpointType, endpointURL string) error {
+	return v.ValidateResponseWithPath(body, isStreaming, endpointType, "", endpointURL)
 }
 
-func (v *ResponseValidator) ValidateResponseWithPath(body []byte, isStreaming bool, endpointType, path string) error {
+func (v *ResponseValidator) ValidateResponseWithPath(body []byte, isStreaming bool, endpointType, path, endpointURL string) error {
 	// 流式验证和严格模式已永久启用
-	
+
 	// 跳过 count_tokens 接口的 Anthropic 格式验证
 	if isCountTokensEndpoint(path) {
 		// count_tokens 接口只做基本 JSON 格式验证
@@ -41,14 +41,14 @@ func (v *ResponseValidator) ValidateResponseWithPath(body []byte, isStreaming bo
 		}
 		return fmt.Errorf("count_tokens response missing input_tokens field")
 	}
-	
+
 	if isStreaming {
 		// 首先进行基本的SSE chunk验证
 		if err := v.ValidateSSEChunk(body, endpointType); err != nil {
 			return err
 		}
 		// 然后验证完整SSE流的完整性
-		return v.ValidateCompleteSSEStream(body, endpointType)
+		return v.ValidateCompleteSSEStream(body, endpointType, endpointURL)
 	}
 	return v.ValidateStandardResponse(body, endpointType)
 }
@@ -90,14 +90,14 @@ func (v *ResponseValidator) ValidateStandardResponse(body []byte, endpointType s
 				return fmt.Errorf("missing required field for OpenAI format: %s", field)
 			}
 		}
-		
+
 		// 验证是否有choices或error字段
 		_, hasChoices := response["choices"]
 		_, hasError := response["error"]
 		if !hasChoices && !hasError {
 			return fmt.Errorf("OpenAI response missing both 'choices' and 'error' fields")
 		}
-		
+
 		// 如果有object字段，验证其值（可选）
 		if objectType, ok := response["object"].(string); ok {
 			if objectType != "chat.completion" && objectType != "chat.completion.chunk" {
@@ -133,7 +133,7 @@ func (v *ResponseValidator) ValidateSSEChunk(chunk []byte, endpointType string) 
 
 		if bytes.HasPrefix(line, []byte("event: ")) {
 			eventType := string(line[7:])
-			
+
 			if endpointType == "anthropic" {
 				validEvents := []string{
 					"message_start", "content_block_start", "ping",
@@ -168,11 +168,11 @@ func (v *ResponseValidator) ValidateSSEChunk(chunk []byte, endpointType string) 
 			}
 
 			// 严格模式已永久启用
-	if endpointType == "anthropic" {
+			if endpointType == "anthropic" {
 				if _, hasType := data["type"]; !hasType {
 					return fmt.Errorf("missing 'type' field in SSE data")
 				}
-				
+
 				// 检查message_start事件的usage统计
 				if err := v.ValidateMessageStartUsage(data); err != nil {
 					return err
@@ -194,11 +194,11 @@ func (v *ResponseValidator) ValidateSSEChunk(chunk []byte, endpointType string) 
 }
 
 // ValidateCompleteSSEStream 验证完整的SSE流是否包含所有必需的事件
-func (v *ResponseValidator) ValidateCompleteSSEStream(body []byte, endpointType string) error {
+func (v *ResponseValidator) ValidateCompleteSSEStream(body []byte, endpointType, endpointURL string) error {
 	if endpointType == "anthropic" {
 		return v.validateAnthropicSSECompleteness(body)
 	} else if endpointType == "openai" {
-		return v.validateOpenAISSECompleteness(body)
+		return v.validateOpenAISSECompleteness(body, endpointURL)
 	}
 	return nil
 }
@@ -208,7 +208,7 @@ func (v *ResponseValidator) validateAnthropicSSECompleteness(body []byte) error 
 	lines := bytes.Split(body, []byte("\n"))
 	hasMessageStart := false
 	hasMessageStop := false
-	
+
 	for _, line := range lines {
 		line = bytes.TrimSpace(line)
 		if bytes.HasPrefix(line, []byte("event: ")) {
@@ -221,39 +221,41 @@ func (v *ResponseValidator) validateAnthropicSSECompleteness(body []byte) error 
 			}
 		}
 	}
-	
+
 	if hasMessageStart && !hasMessageStop {
 		return fmt.Errorf("incomplete SSE stream: has message_start but missing message_stop event")
 	}
-	
+
 	return nil
 }
 
 // validateOpenAISSECompleteness 验证OpenAI SSE流的完整性
-func (v *ResponseValidator) validateOpenAISSECompleteness(body []byte) error {
+func (v *ResponseValidator) validateOpenAISSECompleteness(body []byte, endpointURL string) error {
 	bodyStr := string(body)
-	
+
 	// OpenAI流式响应应该以[DONE]结束
 	if !strings.Contains(bodyStr, "[DONE]") {
-		return fmt.Errorf("incomplete OpenAI SSE stream: missing [DONE] marker")
+		if !strings.Contains(endpointURL, "apis.iflow.cn") {
+			return fmt.Errorf("incomplete OpenAI SSE stream: missing [DONE] marker")
+		}
 	}
-	
+
 	// 检查是否有finish_reason
 	lines := bytes.Split(body, []byte("\n"))
 	hasFinishReason := false
-	
+
 	for _, line := range lines {
 		if bytes.HasPrefix(line, []byte("data: ")) {
 			dataContent := line[6:]
 			if len(dataContent) == 0 || string(dataContent) == "[DONE]" {
 				continue
 			}
-			
+
 			var data map[string]interface{}
 			if err := json.Unmarshal(dataContent, &data); err != nil {
 				continue
 			}
-			
+
 			if choices, ok := data["choices"].([]interface{}); ok && len(choices) > 0 {
 				if choice, ok := choices[0].(map[string]interface{}); ok {
 					if finishReason, exists := choice["finish_reason"]; exists && finishReason != nil {
@@ -264,11 +266,11 @@ func (v *ResponseValidator) validateOpenAISSECompleteness(body []byte) error {
 			}
 		}
 	}
-	
+
 	if !hasFinishReason {
 		return fmt.Errorf("incomplete OpenAI SSE stream: missing finish_reason in response")
 	}
-	
+
 	return nil
 }
 
@@ -359,13 +361,13 @@ func (v *ResponseValidator) DetectJSONContent(body []byte) bool {
 	if len(body) == 0 {
 		return false
 	}
-	
+
 	// 检查是否为有效JSON
 	var jsonData interface{}
 	if err := json.Unmarshal(body, &jsonData); err != nil {
 		return false
 	}
-	
+
 	// 如果能成功解析为JSON，就是JSON内容
 	// 不需要检查内容中是否包含SSE相关字符串，因为JSON可以包含任何字符串内容
 	return true
@@ -376,9 +378,9 @@ func (v *ResponseValidator) DetectSSEContent(body []byte) bool {
 	if len(body) == 0 {
 		return false
 	}
-	
+
 	bodyStr := string(body)
-	
+
 	// 首先检查是否是有效的JSON，如果是JSON则不是SSE
 	trimmed := strings.TrimSpace(bodyStr)
 	if (strings.HasPrefix(trimmed, "{") && strings.HasSuffix(trimmed, "}")) ||
@@ -389,12 +391,12 @@ func (v *ResponseValidator) DetectSSEContent(body []byte) bool {
 			return false // 是有效的JSON，不是SSE
 		}
 	}
-	
+
 	// 检查SSE格式：必须有以"event: "或"data: "开头的行
 	lines := strings.Split(bodyStr, "\n")
 	hasEventLine := false
 	hasDataLine := false
-	
+
 	for _, line := range lines {
 		trimmedLine := strings.TrimSpace(line)
 		if strings.HasPrefix(trimmedLine, "event: ") {
@@ -404,7 +406,7 @@ func (v *ResponseValidator) DetectSSEContent(body []byte) bool {
 			hasDataLine = true
 		}
 	}
-	
+
 	// SSE格式必须至少有一个data:行，通常还有event:行
 	return hasDataLine && (hasEventLine || len(lines) > 1)
 }
@@ -417,17 +419,17 @@ func (v *ResponseValidator) SmartDetectContentType(body []byte, currentContentTy
 	if statusCode != 200 || len(body) == 0 {
 		return "", "" // 只处理200状态码的响应
 	}
-	
+
 	// 标准化当前Content-Type
 	currentContentTypeLower := strings.ToLower(currentContentType)
 	isCurrentSSE := strings.Contains(currentContentTypeLower, "text/event-stream")
 	isCurrentJSON := strings.Contains(currentContentTypeLower, "application/json")
 	isCurrentPlain := strings.Contains(currentContentTypeLower, "text/plain")
-	
+
 	// 检测实际内容类型
 	isActualSSE := v.DetectSSEContent(body)
 	isActualJSON := v.DetectJSONContent(body)
-	
+
 	// 决定是否需要覆盖Content-Type
 	if isActualSSE && !isCurrentSSE {
 		// 内容是SSE但Content-Type不是，覆盖为SSE
@@ -448,7 +450,7 @@ func (v *ResponseValidator) SmartDetectContentType(body []byte, currentContentTy
 			return "application/json", "unknown->json"
 		}
 	}
-	
+
 	// 不需要覆盖
 	return "", ""
 }
