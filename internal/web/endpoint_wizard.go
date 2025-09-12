@@ -4,8 +4,8 @@ import (
 	"net/http"
 
 	"claude-code-companion/internal/config"
-	"claude-code-companion/internal/security"
 	"claude-code-companion/internal/i18n"
+	"claude-code-companion/internal/security"
 
 	"github.com/gin-gonic/gin"
 )
@@ -33,6 +33,7 @@ type CreateFromWizardRequest struct {
 	AuthValue    string `json:"auth_value" binding:"required"`
 	URL          string `json:"url" binding:"required"`
 	DefaultModel string `json:"default_model,omitempty"`
+	ModelAlias   string `json:"model_alias,omitempty"`
 }
 
 // handleCreateEndpointFromWizard 从向导创建端点
@@ -87,6 +88,13 @@ func (s *AdminServer) handleCreateEndpointFromWizard(c *gin.Context) {
 		}
 	}
 
+	if request.ModelAlias != "" {
+		if err := security.ValidateGenericText(request.ModelAlias, 100, i18n.TCtx(c, "model_alias", "模型简称")); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+	}
+
 	// 检查默认模型要求
 	if profile.RequireDefaultModel && request.DefaultModel == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -118,6 +126,10 @@ func (s *AdminServer) handleCreateEndpointFromWizard(c *gin.Context) {
 	// 使用预设配置创建端点配置
 	newEndpoint := profile.ToEndpointConfig(request.Name, request.AuthValue, request.DefaultModel, request.URL)
 	newEndpoint.Priority = maxPriority + 1
+	newEndpoint.ModelAlias = request.ModelAlias
+	if request.ModelAlias != "" {
+		newEndpoint.Tags = append(newEndpoint.Tags, request.ModelAlias)
+	}
 
 	// 添加到端点列表
 	updatedEndpoints := append(currentEndpoints, newEndpoint)
@@ -182,10 +194,10 @@ func (s *AdminServer) endpointNameExists(name string, endpoints []config.Endpoin
 func (s *AdminServer) registerEndpointWizardRoutes(api *gin.RouterGroup) {
 	// 获取端点预设配置列表
 	api.GET("/endpoint-profiles", s.handleGetEndpointProfiles)
-	
+
 	// 从向导创建端点
 	api.POST("/endpoints/from-wizard", s.handleCreateEndpointFromWizard)
-	
+
 	// 生成唯一端点名称
 	api.POST("/endpoints/generate-name", s.handleGenerateEndpointName)
 }

@@ -137,9 +137,11 @@ class EndpointWizard {
         document.getElementById('auth-value-wizard').value = '';
         document.getElementById('url-wizard').value = '';
         document.getElementById('default-model-input-wizard').value = '';
-        
+        document.getElementById('model-alias-wizard').value = '';
+
         // 隐藏默认模型组
         document.getElementById('default-model-group-wizard').classList.add('d-none');
+        document.getElementById('model-alias-group-wizard').classList.add('d-none');
     }
 
     clearAlerts() {
@@ -239,13 +241,24 @@ class EndpointWizard {
         const modelGroup = document.getElementById('default-model-group-wizard');
         const modelInput = document.getElementById('default-model-input-wizard');
         const datalist = document.getElementById('model-options');
+        const aliasGroup = document.getElementById('model-alias-group-wizard');
+        const aliasInput = document.getElementById('model-alias-wizard');
 
         if (!this.selectedProfile.require_default_model) {
             modelGroup.classList.add('d-none');
+            aliasGroup.classList.add('d-none');
+            aliasInput.value = '';
             return;
         }
 
         modelGroup.classList.remove('d-none');
+        if (this.selectedProfile.endpoint_type === 'openai') {
+            aliasGroup.classList.remove('d-none');
+            aliasInput.disabled = false;
+        } else {
+            aliasGroup.classList.add('d-none');
+            aliasInput.value = '';
+        }
 
         // 清空datalist
         datalist.innerHTML = '';
@@ -262,6 +275,7 @@ class EndpointWizard {
 
         // 清空输入框
         modelInput.value = '';
+        aliasInput.value = '';
     }
 
     renderStep3() {
@@ -282,6 +296,16 @@ class EndpointWizard {
             modelRow.classList.remove('d-none');
         } else {
             modelRow.classList.add('d-none');
+        }
+
+        // 处理模型简称行
+        const modelAlias = document.getElementById('model-alias-wizard').value;
+        const aliasRow = document.getElementById('confirm-alias-row');
+        if (modelAlias) {
+            document.getElementById('confirm-alias').textContent = modelAlias;
+            aliasRow.classList.remove('d-none');
+        } else {
+            aliasRow.classList.add('d-none');
         }
 
         // 处理路径前缀行
@@ -426,7 +450,8 @@ class EndpointWizard {
                 name: document.getElementById('endpoint-name-wizard').value.trim(),
                 auth_value: document.getElementById('auth-value-wizard').value.trim(),
                 url: document.getElementById('url-wizard').value.trim(),
-                default_model: document.getElementById('default-model-input-wizard').value.trim()
+                default_model: document.getElementById('default-model-input-wizard').value.trim(),
+                model_alias: document.getElementById('model-alias-wizard').value.trim()
             };
 
             const response = await apiRequest('/admin/api/endpoints/from-wizard', {

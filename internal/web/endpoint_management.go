@@ -103,15 +103,16 @@ func (s *AdminServer) handleCopyEndpoint(c *gin.Context) {
 
 	// 创建新端点（复制所有属性，除了名称和优先级）
 	newEndpoint := config.EndpointConfig{
-		Name:              newName,
-		URL:               sourceEndpoint.URL,
-		EndpointType:      sourceEndpoint.EndpointType,
-		PathPrefix:        sourceEndpoint.PathPrefix,
-		AuthType:          sourceEndpoint.AuthType,
-		AuthValue:         sourceEndpoint.AuthValue,
-		Enabled:           sourceEndpoint.Enabled,
-		Priority:          maxPriority + 1,
-		Tags:              make([]string, len(sourceEndpoint.Tags)), // 复制tags
+		Name:         newName,
+		URL:          sourceEndpoint.URL,
+		EndpointType: sourceEndpoint.EndpointType,
+		PathPrefix:   sourceEndpoint.PathPrefix,
+		AuthType:     sourceEndpoint.AuthType,
+		AuthValue:    sourceEndpoint.AuthValue,
+		Enabled:      sourceEndpoint.Enabled,
+		Priority:     maxPriority + 1,
+		Tags:         make([]string, len(sourceEndpoint.Tags)), // 复制tags
+		ModelAlias:   sourceEndpoint.ModelAlias,
 	}
 
 	// 深度复制Tags切片
@@ -202,7 +203,7 @@ func (s *AdminServer) handleReorderEndpoints(c *gin.Context) {
 
 	// 获取当前所有端点
 	currentEndpoints := s.config.Endpoints
-	
+
 	// 创建按名称索引的map
 	endpointMap := make(map[string]config.EndpointConfig)
 	for _, ep := range currentEndpoints {
