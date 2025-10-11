@@ -75,12 +75,12 @@ func (r *Rewriter) RewriteRequestWithTags(req *http.Request, modelRewriteConfig 
 		rules = []config.ModelRewriteRule{
 			{
 				SourcePattern: "*",
-				TargetModel:   "claude-sonnet-4-20250514",
+				TargetModel:   "claude-sonnet-4-20250929",
 			},
 		}
 		r.logger.Debug("Applying implicit model rewrite rule for generic endpoint", map[string]interface{}{
 			"original_model": originalModel,
-			"target_model":   "claude-sonnet-4-20250514",
+			"target_model":   "claude-sonnet-4-20250929",
 		})
 	} else {
 		// 没有规则应用
@@ -172,7 +172,7 @@ func (r *Rewriter) rewriteSSEResponse(responseBody []byte, originalModel, rewrit
 		if strings.HasPrefix(line, "data: ") && line != "data: [DONE]" {
 			// 提取data后面的JSON部分
 			jsonStr := strings.TrimPrefix(line, "data: ")
-			
+
 			// 尝试解析JSON
 			var eventData map[string]interface{}
 			if err := json.Unmarshal([]byte(jsonStr), &eventData); err == nil {
@@ -180,7 +180,7 @@ func (r *Rewriter) rewriteSSEResponse(responseBody []byte, originalModel, rewrit
 				if r.replaceModelInObject(eventData, rewrittenModel, originalModel) {
 					rewriteCount++
 				}
-				
+
 				// 重新序列化JSON
 				if newJsonBytes, err := json.Marshal(eventData); err == nil {
 					modifiedLines = append(modifiedLines, "data: "+string(newJsonBytes))
@@ -209,7 +209,7 @@ func (r *Rewriter) rewriteSSEResponse(responseBody []byte, originalModel, rewrit
 // replaceModelInObject 递归查找并替换对象中的model字段
 func (r *Rewriter) replaceModelInObject(obj interface{}, rewrittenModel, originalModel string) bool {
 	replaced := false
-	
+
 	switch v := obj.(type) {
 	case map[string]interface{}:
 		// 检查当前层级是否有model字段
@@ -219,7 +219,7 @@ func (r *Rewriter) replaceModelInObject(obj interface{}, rewrittenModel, origina
 				replaced = true
 			}
 		}
-		
+
 		// 递归检查所有嵌套对象
 		for _, value := range v {
 			if r.replaceModelInObject(value, rewrittenModel, originalModel) {
@@ -234,14 +234,14 @@ func (r *Rewriter) replaceModelInObject(obj interface{}, rewrittenModel, origina
 			}
 		}
 	}
-	
+
 	return replaced
 }
 
 // rewriteTextResponse 处理纯文本响应（简单字符串替换）
 func (r *Rewriter) rewriteTextResponse(responseBody []byte, originalModel, rewrittenModel string) ([]byte, error) {
 	bodyStr := string(responseBody)
-	
+
 	// 只有当响应中包含重写后的模型名时才进行替换
 	if strings.Contains(bodyStr, rewrittenModel) {
 		newBodyStr := strings.ReplaceAll(bodyStr, rewrittenModel, originalModel)
@@ -251,7 +251,7 @@ func (r *Rewriter) rewriteTextResponse(responseBody []byte, originalModel, rewri
 		})
 		return []byte(newBodyStr), nil
 	}
-	
+
 	return responseBody, nil
 }
 
