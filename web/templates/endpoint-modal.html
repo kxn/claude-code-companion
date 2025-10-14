@@ -36,9 +36,9 @@
                     <div class="tab-content" id="endpointModalTabContent">
                         <!-- Basic Configuration Tab -->
                         <div class="tab-pane fade show active" id="basic-tab-pane" role="tabpanel" aria-labelledby="basic-tab">
-                            <!-- 第一行：名称、默认模型和启用状态 -->
+                            <!-- 第一行：名称、默认模型、模型简称和启用状态 -->
                             <div class="row mb-3">
-                                <div class="col-4">
+                                <div class="col-3">
                                     <label for="endpoint-name" class="form-label">
                                         <i class="fas fa-tag form-label-icon"></i><span data-t="name">名称</span> <span class="text-danger">*</span>
                                         <a href="https://ucn0s6hcz1w1.feishu.cn/sheets/RNPHswfIThqQ1itf1m4cb0mKnrc" target="_blank" class="ms-2 text-primary text-sm">
@@ -47,18 +47,24 @@
                                     </label>
                                     <input type="text" class="form-control" id="endpoint-name" required>
                                 </div>
-                                <div class="col-4">
+                                <div class="col-3">
                                     <label for="endpoint-default-model" class="form-label">
                                         <i class="fas fa-robot form-label-icon"></i><span data-t="default_model">默认模型</span>
                                         <i class="fas fa-question-circle text-muted ms-1" data-t-title="default_model_tooltip" title="可以快捷设置此端点支持的唯一模型名，例如 openai/gpt-5" data-bs-toggle="tooltip"></i>
                                     </label>
-                                    <input type="text" class="form-control" id="endpoint-default-model" 
+                                    <input type="text" class="form-control" id="endpoint-default-model"
                                            data-t-placeholder="default_model_placeholder" placeholder="如: claude-3-5-haiku-20241022">
                                     <small class="form-text text-muted d-none-custom" id="default-model-hint">
                                         <span data-t="model_rewrite_incompatible_settings">Model Rewrite中有不兼容的设置</span>
                                     </small>
                                 </div>
-                                <div class="col-4 d-flex align-items-center">
+                                <div class="col-3">
+                                    <label for="endpoint-model-alias" class="form-label">
+                                        <i class="fas fa-signature form-label-icon"></i><span data-t="model_alias">模型简称</span>
+                                    </label>
+                                    <input type="text" class="form-control" id="endpoint-model-alias" data-t-placeholder="model_alias_placeholder" placeholder="如: gpt-4o">
+                                </div>
+                                <div class="col-3 d-flex align-items-center">
                                     <div class="w-100 d-flex justify-content-end">
                                         <div class="form-check">
                                             <input class="form-check-input" type="checkbox" id="endpoint-enabled" checked>

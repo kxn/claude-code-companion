@@ -89,6 +89,7 @@ function resetAuthVisibility() {
 function onEndpointTypeChange() {
     togglePathPrefixField();
     toggleAuthTypeForEndpointType();
+    toggleModelAliasField();
 }
 
 function togglePathPrefixField() {
@@ -150,6 +151,19 @@ function toggleAuthTypeForEndpointType() {
     
     // Trigger auth type change to update the display
     onAuthTypeChange();
+}
+
+function toggleModelAliasField() {
+    const endpointType = document.getElementById('endpoint-type').value;
+    const aliasInput = document.getElementById('endpoint-model-alias');
+    if (!aliasInput) return;
+
+    if (endpointType === 'openai') {
+        aliasInput.disabled = false;
+    } else {
+        aliasInput.value = '';
+        aliasInput.disabled = true;
+    }
 }
 
 function onAuthTypeChange() {

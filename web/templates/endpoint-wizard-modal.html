@@ -84,19 +84,28 @@
                                 <input type="url" class="form-control" id="url-wizard" required>
                                 <small class="form-text text-muted" data-t="wizard_url_help">可根据需要修改为自定义域名</small>
                             </div>
-                            <!-- 默认模型字段，根据预设动态显示 -->
-                            <div class="mb-3 d-none" id="default-model-group-wizard">
-                                <label for="default-model-wizard" class="form-label">
-                                    <i class="fas fa-robot form-label-icon"></i><span data-t="default_model">默认模型</span> <span class="text-danger">*</span>
-                                </label>
-                                <div class="position-relative">
-                                    <input type="text" class="form-control" id="default-model-input-wizard" 
-                                           placeholder="请输入或选择模型名称" list="model-options" data-t-placeholder="enter_or_select_model">
-                                    <datalist id="model-options">
-                                        <!-- 动态填充预设模型选项 -->
-                                    </datalist>
+                            <!-- 默认模型和模型简称字段，根据预设动态显示 -->
+                            <div class="row mb-3 d-none" id="default-model-group-wizard">
+                                <div class="col-md-6">
+                                    <label for="default-model-wizard" class="form-label">
+                                        <i class="fas fa-robot form-label-icon"></i><span data-t="default_model">默认模型</span> <span class="text-danger">*</span>
+                                    </label>
+                                    <div class="position-relative">
+                                        <input type="text" class="form-control" id="default-model-input-wizard"
+                                               placeholder="请输入或选择模型名称" list="model-options" data-t-placeholder="enter_or_select_model">
+                                        <datalist id="model-options">
+                                            <!-- 动态填充预设模型选项 -->
+                                        </datalist>
+                                    </div>
+                                    <small class="form-text text-muted" data-t="wizard_model_help">可以选择预设选项或手动输入模型名称</small>
                                 </div>
-                                <small class="form-text text-muted" data-t="wizard_model_help">可以选择预设选项或手动输入模型名称</small>
+                                <div class="col-md-6 d-none" id="model-alias-group-wizard">
+                                    <label for="model-alias-wizard" class="form-label">
+                                        <i class="fas fa-signature form-label-icon"></i><span data-t="model_alias">模型简称</span>
+                                    </label>
+                                    <input type="text" class="form-control" id="model-alias-wizard" data-t-placeholder="model_alias_placeholder" placeholder="如: gpt-4o">
+                                    <small class="form-text text-muted" data-t="wizard_alias_help">保存时将添加同名标签</small>
+                                </div>
                             </div>
                         </form>
                     </div>
@@ -133,6 +142,10 @@
                                         <tr class="d-none" id="confirm-model-row">
                                             <td class="fw-bold" data-t="default_model">默认模型：</td>
                                             <td id="confirm-model"></td>
+                                        </tr>
+                                        <tr class="d-none" id="confirm-alias-row">
+                                            <td class="fw-bold" data-t="model_alias">模型简称：</td>
+                                            <td id="confirm-alias"></td>
                                         </tr>
                                         <tr class="d-none" id="confirm-path-row">
                                             <td class="fw-bold" data-t="path_prefix">路径前缀：</td>
