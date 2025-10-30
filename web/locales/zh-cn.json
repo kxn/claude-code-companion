@@ -689,6 +689,12 @@
     "reverse_order": "逆向排列",
     "exporting": "导出中...",
     "version_found": "发现版本",
-    "click_to_view_github": "点击查看 GitHub"
+    "click_to_view_github": "点击查看 GitHub",
+    "reorder_system_messages_first_configuration": "System Messages 重排配置",
+    "enable_reorder_system_messages_first": "启用 System Messages 重排",
+    "reorder_system_messages_first_openai_only": "仅对 OpenAI Compatible 类型端点生效",
+    "reorder_system_messages_first_move_to_front": "启用后将所有 system 消息重排到 messages 数组最前面",
+    "reorder_system_messages_first_keep_order": "保持多条 system 消息的原有顺序",
+    "reorder_system_messages_first_use_case": "适用于严格要求 system prompt 在首位的端点"
   }
 }

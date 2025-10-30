@@ -22,6 +22,17 @@ endpoints:
       enabled: true
       priority: 2
 
+    # OpenAI Compatible 端点示例
+    # - name: openai-compatible-example
+    #   url: https://api.example.com
+    #   endpoint_type: openai
+    #   path_prefix: /v1/chat/completions  # OpenAI 兼容端点的 API 路径
+    #   auth_type: auth_token
+    #   auth_value: your-bearer-token-here
+    #   enabled: true
+    #   priority: 3
+    #   reorder_system_messages_first: false  # 仅对 OpenAI Compatible 端点生效，将 system 消息重排到 messages 最前面（默认：false）
+
 logging:
     level: info                    # debug | info | warn | error
     log_request_types: failed      # failed | success | all

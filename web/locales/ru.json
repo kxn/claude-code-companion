@@ -670,6 +670,12 @@
     "export_failed_error": "Экспорт не удался",
     "http_header_content": "Содержимое HTTP-заголовка",
     "fallback_support": "Поддержка резервных переменных окружения при сбоях",
-    "original_request_headers": "Оригинальные заголовки запроса"
+    "original_request_headers": "Оригинальные заголовки запроса",
+    "reorder_system_messages_first_configuration": "Конфигурация переупорядочивания системных сообщений",
+    "enable_reorder_system_messages_first": "Включить переупорядочивание системных сообщений",
+    "reorder_system_messages_first_openai_only": "Действует только для конечных точек, совместимых с OpenAI",
+    "reorder_system_messages_first_move_to_front": "При включении все системные сообщения будут переупорядочены в начало массива сообщений",
+    "reorder_system_messages_first_keep_order": "Сохраняет исходный порядок нескольких системных сообщений",
+    "reorder_system_messages_first_use_case": "Подходит для конечных точек, которые строго требуют, чтобы системный промпт был первым"
   }
 }

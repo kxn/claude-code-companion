@@ -689,6 +689,12 @@
     "reverse_order": "Reverse Order",
     "exporting": "Exporting...",
     "version_found": "Version Found",
-    "click_to_view_github": "Click to View GitHub"
+    "click_to_view_github": "Click to View GitHub",
+    "reorder_system_messages_first_configuration": "System Messages Reorder Configuration",
+    "enable_reorder_system_messages_first": "Enable System Messages Reorder",
+    "reorder_system_messages_first_openai_only": "Only effective for OpenAI Compatible endpoints",
+    "reorder_system_messages_first_move_to_front": "When enabled, all system messages will be reordered to the front of the messages array",
+    "reorder_system_messages_first_keep_order": "Preserves the original order of multiple system messages",
+    "reorder_system_messages_first_use_case": "Suitable for endpoints that strictly require system prompt to be first"
   }
 }

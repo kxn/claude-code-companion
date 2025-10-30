@@ -557,7 +557,7 @@ document.addEventListener('DOMContentLoaded', function() {
             this.checked ? StyleUtils.show(configDiv) : StyleUtils.hide(configDiv);
         });
     }
-    
+
     // Add header override rule button event listener
     const addHeaderRuleBtn = document.querySelector('[data-action="add-header-override-rule"]');
     if (addHeaderRuleBtn) {
@@ -565,7 +565,7 @@ document.addEventListener('DOMContentLoaded', function() {
             addHeaderOverrideRule();
         });
     }
-    
+
     // Add parameter override rule button event listener
     const addParameterRuleBtn = document.querySelector('[data-action="add-parameter-override-rule"]');
     if (addParameterRuleBtn) {
@@ -574,3 +574,16 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+// ===== Reorder System Messages First Functions =====
+
+// Collect reorder system messages first configuration
+function collectReorderSystemMessagesFirstData() {
+    return document.getElementById('reorder-system-messages-first-enabled').checked;
+}
+
+// Load reorder system messages first configuration to form
+function loadReorderSystemMessagesFirstConfig(enabled) {
+    const checkbox = document.getElementById('reorder-system-messages-first-enabled');
+    checkbox.checked = enabled === true;
+}

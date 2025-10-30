@@ -670,6 +670,12 @@
     "export_failed_error": "Export fehlgeschlagen",
     "http_header_content": "HTTP-Header-Inhalt",
     "fallback_support": "Umgebungsvariablen-Fallback-Unterstützung bei Fehlern",
-    "original_request_headers": "Ursprüngliche Request-Header"
+    "original_request_headers": "Ursprüngliche Request-Header",
+    "reorder_system_messages_first_configuration": "System-Nachrichten Neuordnungskonfiguration",
+    "enable_reorder_system_messages_first": "System-Nachrichten Neuordnung aktivieren",
+    "reorder_system_messages_first_openai_only": "Nur für OpenAI-kompatible Endpunkte wirksam",
+    "reorder_system_messages_first_move_to_front": "Wenn aktiviert, werden alle System-Nachrichten an den Anfang des Nachrichten-Arrays verschoben",
+    "reorder_system_messages_first_keep_order": "Bewahrt die ursprüngliche Reihenfolge mehrerer System-Nachrichten",
+    "reorder_system_messages_first_use_case": "Geeignet für Endpunkte, die strikt verlangen, dass System-Prompts zuerst erscheinen"
   }
 }

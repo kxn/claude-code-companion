@@ -670,6 +670,12 @@
     "export_failed_error": "La exportación falló",
     "http_header_content": "Contenido de Encabezado HTTP",
     "fallback_support": "Soporte de respaldo de variables de entorno en caso de fallo",
-    "original_request_headers": "Encabezados de Solicitud Originales"
+    "original_request_headers": "Encabezados de Solicitud Originales",
+    "reorder_system_messages_first_configuration": "Configuración de Reordenamiento de Mensajes del Sistema",
+    "enable_reorder_system_messages_first": "Habilitar Reordenamiento de Mensajes del Sistema",
+    "reorder_system_messages_first_openai_only": "Solo efectivo para endpoints compatibles con OpenAI",
+    "reorder_system_messages_first_move_to_front": "Cuando está habilitado, todos los mensajes del sistema se reordenarán al frente del array de mensajes",
+    "reorder_system_messages_first_keep_order": "Preserva el orden original de múltiples mensajes del sistema",
+    "reorder_system_messages_first_use_case": "Adecuado para endpoints que requieren estrictamente que el system prompt esté primero"
   }
 }

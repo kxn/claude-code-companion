@@ -670,6 +670,12 @@
     "export_failed_error": "Esportazione fallita",
     "http_header_content": "Contenuto Header HTTP",
     "fallback_support": "Supporto fallback variabile di ambiente in caso di errore",
-    "original_request_headers": "Header Richiesta Originali"
+    "original_request_headers": "Header Richiesta Originali",
+    "reorder_system_messages_first_configuration": "Configurazione Riordinamento Messaggi di Sistema",
+    "enable_reorder_system_messages_first": "Abilita Riordinamento Messaggi di Sistema",
+    "reorder_system_messages_first_openai_only": "Efficace solo per endpoint compatibili con OpenAI",
+    "reorder_system_messages_first_move_to_front": "Quando abilitato, tutti i messaggi di sistema verranno riordinati all'inizio dell'array dei messaggi",
+    "reorder_system_messages_first_keep_order": "Preserva l'ordine originale di più messaggi di sistema",
+    "reorder_system_messages_first_use_case": "Adatto per endpoint che richiedono rigorosamente il system prompt per primo"
   }
 }

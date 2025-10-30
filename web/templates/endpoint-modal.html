@@ -358,7 +358,7 @@
                                         <label class="form-check-label" for="enhanced-protection-enabled" data-t="enable_enhanced_protection">启用增强保护</label>
                                     </div>
                                 </div>
-                                
+
                                 <div class="alert alert-warning p-2 mt-3">
                                     <small class="text-muted">
                                         <strong data-t="description">说明：</strong><br>
@@ -366,6 +366,29 @@
                                         <span data-t="enhanced_protection_allowed_warning_trigger">• 启用后当 Rate Limit 状态变为 allowed_warning 时立即禁用端点</span><br>
                                         <span data-t="enhanced_protection_disable_after_failure">• 禁用时仅在彻底失败后才禁用端点</span><br>
                                         <span data-t="enhanced_protection_account_protection">• 可有效保护官方帐号避免被限流</span>
+                                    </small>
+                                </div>
+                            </div>
+
+                            <!-- System Messages 重排配置区域 -->
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h6 class="mb-0">
+                                        <i class="fas fa-sort"></i> <span data-t="reorder_system_messages_first_configuration">System Messages 重排配置</span>
+                                    </h6>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="reorder-system-messages-first-enabled">
+                                        <label class="form-check-label" for="reorder-system-messages-first-enabled" data-t="enable_reorder_system_messages_first">启用 System Messages 重排</label>
+                                    </div>
+                                </div>
+
+                                <div class="alert alert-info p-2 mt-3">
+                                    <small class="text-muted">
+                                        <strong data-t="description">说明：</strong><br>
+                                        <span data-t="reorder_system_messages_first_openai_only">• 仅对 OpenAI Compatible 类型端点生效</span><br>
+                                        <span data-t="reorder_system_messages_first_move_to_front">• 启用后将所有 system 消息重排到 messages 数组最前面</span><br>
+                                        <span data-t="reorder_system_messages_first_keep_order">• 保持多条 system 消息的原有顺序</span><br>
+                                        <span data-t="reorder_system_messages_first_use_case">• 适用于严格要求 system prompt 在首位的端点</span>
                                     </small>
                                 </div>
                             </div>

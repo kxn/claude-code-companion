@@ -670,6 +670,12 @@
     "export_failed_error": "Exportação falhou",
     "http_header_content": "Conteúdo do Cabeçalho HTTP",
     "fallback_support": "Suporte de fallback de variável de ambiente em caso de falha",
-    "original_request_headers": "Cabeçalhos de Solicitação Originais"
+    "original_request_headers": "Cabeçalhos de Solicitação Originais",
+    "reorder_system_messages_first_configuration": "Configuração de Reordenação de Mensagens do Sistema",
+    "enable_reorder_system_messages_first": "Ativar Reordenação de Mensagens do Sistema",
+    "reorder_system_messages_first_openai_only": "Efetivo apenas para endpoints compatíveis com OpenAI",
+    "reorder_system_messages_first_move_to_front": "Quando ativado, todas as mensagens do sistema serão reordenadas para o início do array de mensagens",
+    "reorder_system_messages_first_keep_order": "Preserva a ordem original de múltiplas mensagens do sistema",
+    "reorder_system_messages_first_use_case": "Adequado para endpoints que exigem estritamente que o system prompt esteja primeiro"
   }
 }

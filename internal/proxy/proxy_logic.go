@@ -97,8 +97,9 @@ func (s *Server) proxyToEndpoint(c *gin.Context, ep *endpoint.Endpoint, path str
 
 		// 创建端点信息
 		endpointInfo := &conversion.EndpointInfo{
-			Type:               ep.EndpointType,
-			MaxTokensFieldName: ep.MaxTokensFieldName,
+			Type:                       ep.EndpointType,
+			MaxTokensFieldName:         ep.MaxTokensFieldName,
+			ReorderSystemMessagesFirst: ep.ReorderSystemMessagesFirst != nil && *ep.ReorderSystemMessagesFirst,
 		}
 
 		convertedBody, ctx, err := s.converter.ConvertRequest(finalRequestBody, endpointInfo)
