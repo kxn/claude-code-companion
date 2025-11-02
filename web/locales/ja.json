@@ -670,6 +670,12 @@
     "export_failed_error": "エクスポートに失敗",
     "http_header_content": "HTTPヘッダーコンテンツ",
     "fallback_support": "失敗時の環境変数フォールバックサポート",
-    "original_request_headers": "元のリクエストヘッダー"
+    "original_request_headers": "元のリクエストヘッダー",
+    "reorder_system_messages_first_configuration": "System Messages 重排配置",
+    "enable_reorder_system_messages_first": "System Messages 重排を有効化",
+    "reorder_system_messages_first_openai_only": "OpenAI Compatibleタイプのエンドポイントのみ有効",
+    "reorder_system_messages_first_move_to_front": "有効にすると、すべてのsystemメッセージが配列の先頭に並び替えられます",
+    "reorder_system_messages_first_keep_order": "複数のsystemメッセージの元の順序を保持",
+    "reorder_system_messages_first_use_case": "systemプロンプトを最初に配置する必要があるエンドポイントに適用"
   }
 }

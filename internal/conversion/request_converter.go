@@ -30,7 +30,7 @@ func (c *RequestConverter) Convert(anthropicReq []byte, endpointInfo *EndpointIn
 		return nil, nil, NewConversionError("parse_error", "Failed to parse Anthropic request", err)
 	}
 
-	// 创建转换上下文 
+	// 创建转换上下文
 	ctx := &ConversionContext{
 		ToolCallIDMap:  make(map[string]string),
 		IsStreaming:    anthReq.Stream != nil && *anthReq.Stream,
@@ -46,7 +46,7 @@ func (c *RequestConverter) Convert(anthropicReq []byte, endpointInfo *EndpointIn
 	// 温控映射
 	out.Temperature = anthReq.Temperature
 	out.TopP = anthReq.TopP
-	
+
 	// 根据端点配置处理 max_tokens 字段名转换
 	if endpointInfo != nil && endpointInfo.MaxTokensFieldName != "" {
 		// 根据配置的字段名设置对应字段
@@ -133,7 +133,7 @@ func (c *RequestConverter) Convert(anthropicReq []byte, endpointInfo *EndpointIn
 			// 用户消息可以包含 text / image / tool_result
 			// 其中 tool_result 需转成 role:"tool"
 			// 其他（text/image）转为 role:"user"
-			// 
+			//
 			// 重要：为了确保相同 ID 的 assistant 和 tool 消息紧挨着，
 			// 我们需要先输出所有 tool_result，然后再输出 user 消息
 			// 使用新的 GetContentBlocks 方法获取内容块
@@ -147,7 +147,7 @@ func (c *RequestConverter) Convert(anthropicReq []byte, endpointInfo *EndpointIn
 					userBlocks = append(userBlocks, bl)
 				}
 			}
-			
+
 			// 先处理 tool_result -> role:"tool"
 			// 这样确保 assistant 和 tool 消息紧挨着
 			for _, tr := range toolResults {
@@ -157,7 +157,7 @@ func (c *RequestConverter) Convert(anthropicReq []byte, endpointInfo *EndpointIn
 					// 因上下文不可靠，这里严格要求 tool_use_id 存在：
 					return nil, nil, errors.New("user.tool_result is missing tool_use_id")
 				}
-				
+
 				// 提取 tool_result 的内容
 				var content string
 				switch v := tr.Content.(type) {
@@ -189,14 +189,14 @@ func (c *RequestConverter) Convert(anthropicReq []byte, endpointInfo *EndpointIn
 				default:
 					content = ""
 				}
-				
+
 				out.Messages = append(out.Messages, OpenAIMessage{
 					Role:       "tool",
 					ToolCallID: tr.ToolUseID,
 					Content:    strings.TrimSpace(content),
 				})
 			}
-			
+
 			// 然后处理 user 内容（text/image）
 			if len(userBlocks) > 0 {
 				om := OpenAIMessage{Role: "user"}
@@ -302,7 +302,7 @@ func (c *RequestConverter) Convert(anthropicReq []byte, endpointInfo *EndpointIn
 		// 根据 budget_tokens 映射推理强度
 		if anthReq.Thinking.BudgetTokens > 0 {
 			out.MaxReasoningTokens = &anthReq.Thinking.BudgetTokens
-			
+
 			// 根据 budget_tokens 的大小设置推理强度
 			if anthReq.Thinking.BudgetTokens <= 5000 {
 				out.ReasoningEffort = stringPtr("low")
@@ -315,10 +315,10 @@ func (c *RequestConverter) Convert(anthropicReq []byte, endpointInfo *EndpointIn
 			// 如果没有指定 budget_tokens，使用默认的 medium 强度
 			out.ReasoningEffort = stringPtr("medium")
 		}
-		
+
 		if c.logger != nil {
 			c.logger.Debug("Converted thinking mode to OpenAI reasoning mode", map[string]interface{}{
-				"budget_tokens": anthReq.Thinking.BudgetTokens,
+				"budget_tokens":    anthReq.Thinking.BudgetTokens,
 				"reasoning_effort": *out.ReasoningEffort,
 			})
 		}
@@ -328,6 +328,14 @@ func (c *RequestConverter) Convert(anthropicReq []byte, endpointInfo *EndpointIn
 	if c.logger != nil {
 		if anthReq.TopK != nil {
 			c.logger.Debug("Ignoring top_k field (not supported by OpenAI)")
+		}
+	}
+
+	// 如果需要重排 system 消息到最前面
+	if endpointInfo != nil && endpointInfo.ReorderSystemMessagesFirst {
+		out.Messages = reorderSystemMessagesFirst(out.Messages)
+		if c.logger != nil {
+			c.logger.Debug("Reordered system messages to the front of messages array")
 		}
 	}
 
@@ -401,4 +409,36 @@ func (c *RequestConverter) anthropicSystemToText(sys interface{}) string {
 		}
 		return ""
 	}
+}
+
+// reorderSystemMessagesFirst 将所有 system 消息重排到 messages 数组的最前面
+// 保持 system 消息之间的原有顺序，以及非 system 消息之间的原有顺序
+func reorderSystemMessagesFirst(messages []OpenAIMessage) []OpenAIMessage {
+	if len(messages) == 0 {
+		return messages
+	}
+
+	var systemMessages []OpenAIMessage
+	var nonSystemMessages []OpenAIMessage
+
+	// 分离 system 消息和非 system 消息
+	for _, msg := range messages {
+		if msg.Role == "system" {
+			systemMessages = append(systemMessages, msg)
+		} else {
+			nonSystemMessages = append(nonSystemMessages, msg)
+		}
+	}
+
+	// 如果没有 system 消息，直接返回原数组
+	if len(systemMessages) == 0 {
+		return messages
+	}
+
+	// 将 system 消息放在最前面，然后是非 system 消息
+	result := make([]OpenAIMessage, 0, len(messages))
+	result = append(result, systemMessages...)
+	result = append(result, nonSystemMessages...)
+
+	return result
 }

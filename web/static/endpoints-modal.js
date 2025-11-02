@@ -116,7 +116,10 @@ function showEditEndpointModal(endpointName) {
     // Load enhanced protection configuration
     const enhancedProtection = endpoint.enhanced_protection || false;
     document.getElementById('enhanced-protection-enabled').checked = enhancedProtection;
-    
+
+    // Load reorder system messages first configuration
+    loadReorderSystemMessagesFirstConfig(endpoint.reorder_system_messages_first);
+
     // Check enhanced protection availability based on URL
     checkEnhancedProtectionAvailability();
     
@@ -210,7 +213,8 @@ function saveEndpoint() {
         proxy: collectProxyData(), // New: collect proxy configuration
         header_overrides: collectHeaderOverrideData(), // New: collect header override configuration
         parameter_overrides: collectParameterOverrideData(), // New: collect parameter override configuration
-        enhanced_protection: document.getElementById('enhanced-protection-enabled').checked // New: enhanced protection for official accounts
+        enhanced_protection: document.getElementById('enhanced-protection-enabled').checked, // New: enhanced protection for official accounts
+        reorder_system_messages_first: collectReorderSystemMessagesFirstData() // New: reorder system messages first
     };
     
     // Add OAuth config if present
